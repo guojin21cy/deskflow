@@ -248,8 +248,7 @@ std::string fileURLDataToPath(CFDataRef data)
       path = cstr;
     } else {
       // fall back to copying into a buffer sized from the string length
-      const CFIndex maxLen =
-          CFStringGetMaximumSizeForEncoding(CFStringGetLength(fsPath), kCFStringEncodingUTF8) + 1;
+      const CFIndex maxLen = CFStringGetMaximumSizeForEncoding(CFStringGetLength(fsPath), kCFStringEncodingUTF8) + 1;
       std::string buffer(static_cast<size_t>(maxLen), '\0');
       if (CFStringGetCString(fsPath, buffer.data(), maxLen, kCFStringEncodingUTF8)) {
         path = buffer.c_str();
@@ -337,8 +336,8 @@ void OSXClipboard::addFiles(const std::string &data)
 
   for (size_t i = 0; i < paths.size(); ++i) {
     CFURLRef url = CFURLCreateFromFileSystemRepresentation(
-        kCFAllocatorDefault, reinterpret_cast<const UInt8 *>(paths[i].data()),
-        static_cast<CFIndex>(paths[i].size()), false
+        kCFAllocatorDefault, reinterpret_cast<const UInt8 *>(paths[i].data()), static_cast<CFIndex>(paths[i].size()),
+        false
     );
     if (url == nullptr) {
       continue;
