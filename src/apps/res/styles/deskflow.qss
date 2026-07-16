@@ -1,0 +1,291 @@
+/*
+ * Deskflow -- application-wide widget theme
+ * SPDX-FileCopyrightText: (C) 2026 Deskflow Developers
+ * SPDX-License-Identifier: GPL-2.0-only WITH LicenseRef-OpenSSL-Exception
+ *
+ * All colors come from palette() roles so the theme follows the
+ * platform light/dark palette automatically.
+ */
+
+/* ---------- buttons ---------- */
+
+QPushButton {
+  background-color: palette(button);
+  border: 1px solid palette(mid);
+  border-radius: 6px;
+  padding: 5px 14px;
+}
+
+QPushButton:hover {
+  border-color: palette(highlight);
+}
+
+QPushButton:pressed {
+  background-color: palette(midlight);
+}
+
+QPushButton:default {
+  border-color: palette(highlight);
+  border-width: 2px;
+}
+
+QPushButton:disabled {
+  color: palette(mid);
+  border-color: palette(midlight);
+}
+
+QPushButton:flat {
+  background-color: transparent;
+  border: none;
+}
+
+QPushButton:flat:hover {
+  background-color: palette(midlight);
+  border-radius: 6px;
+}
+
+/* ---------- text inputs ---------- */
+
+QLineEdit,
+QPlainTextEdit,
+QTextEdit {
+  background-color: palette(base);
+  border: 1px solid palette(mid);
+  border-radius: 6px;
+  padding: 4px 8px;
+  selection-background-color: palette(highlight);
+  selection-color: palette(highlighted-text);
+}
+
+QLineEdit:focus,
+QPlainTextEdit:focus,
+QTextEdit:focus {
+  border: 2px solid palette(highlight);
+  padding: 3px 7px;
+}
+
+QLineEdit:disabled,
+QPlainTextEdit:disabled,
+QTextEdit:disabled {
+  color: palette(mid);
+  background-color: palette(window);
+}
+
+/* ---------- spin boxes and combo boxes ---------- */
+
+QSpinBox,
+QDoubleSpinBox,
+QComboBox {
+  background-color: palette(base);
+  border: 1px solid palette(mid);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+QSpinBox:focus,
+QDoubleSpinBox:focus,
+QComboBox:focus {
+  border-color: palette(highlight);
+}
+
+QSpinBox:disabled,
+QDoubleSpinBox:disabled,
+QComboBox:disabled {
+  color: palette(mid);
+  background-color: palette(window);
+}
+
+QComboBox::drop-down {
+  border: none;
+  width: 24px;
+}
+
+QComboBox QAbstractItemView {
+  background-color: palette(base);
+  border: 1px solid palette(mid);
+  border-radius: 6px;
+  selection-background-color: palette(highlight);
+  selection-color: palette(highlighted-text);
+}
+
+/* ---------- group boxes ---------- */
+
+QGroupBox {
+  border: 1px solid palette(midlight);
+  border-radius: 8px;
+  margin-top: 8px;
+  padding-top: 4px;
+}
+
+QGroupBox::title {
+  subcontrol-origin: margin;
+  subcontrol-position: top left;
+  left: 10px;
+  padding: 0 4px;
+  color: palette(text);
+}
+
+/* ---------- item views ---------- */
+
+QListWidget,
+QListView,
+QTreeView,
+QTableView {
+  background-color: palette(base);
+  border: 1px solid palette(midlight);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+QListWidget::item,
+QListView::item {
+  padding: 6px;
+  border-radius: 4px;
+}
+
+QListWidget::item:selected,
+QListView::item:selected,
+QTreeView::item:selected,
+QTableView::item:selected {
+  background-color: palette(highlight);
+  color: palette(highlighted-text);
+}
+
+QListWidget::item:hover:!selected,
+QListView::item:hover:!selected,
+QTreeView::item:hover:!selected {
+  background-color: palette(midlight);
+}
+
+QHeaderView::section {
+  background-color: palette(window);
+  border: none;
+  border-bottom: 1px solid palette(mid);
+  padding: 6px 8px;
+}
+
+/* ---------- tabs ---------- */
+
+QTabWidget::pane {
+  border: 1px solid palette(midlight);
+  border-radius: 8px;
+  top: -1px;
+}
+
+QTabBar::tab {
+  background: transparent;
+  padding: 6px 16px;
+  margin: 2px 2px 4px 2px;
+  border-radius: 6px;
+}
+
+QTabBar::tab:selected {
+  background-color: palette(base);
+  border: 1px solid palette(mid);
+}
+
+QTabBar::tab:hover:!selected {
+  background-color: palette(midlight);
+}
+
+/* ---------- menus ---------- */
+
+QMenu {
+  background-color: palette(base);
+  border: 1px solid palette(mid);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+QMenu::item {
+  padding: 6px 24px 6px 12px;
+  border-radius: 4px;
+}
+
+QMenu::item:selected {
+  background-color: palette(highlight);
+  color: palette(highlighted-text);
+}
+
+QMenu::item:disabled {
+  color: palette(mid);
+}
+
+QMenu::separator {
+  height: 1px;
+  background: palette(midlight);
+  margin: 4px 8px;
+}
+
+/* ---------- scroll bars ---------- */
+
+QScrollBar:vertical {
+  background: transparent;
+  width: 10px;
+  margin: 2px;
+}
+
+QScrollBar::handle:vertical {
+  background: palette(mid);
+  border-radius: 3px;
+  min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+  background: palette(dark);
+}
+
+QScrollBar:horizontal {
+  background: transparent;
+  height: 10px;
+  margin: 2px;
+}
+
+QScrollBar::handle:horizontal {
+  background: palette(mid);
+  border-radius: 3px;
+  min-width: 30px;
+}
+
+QScrollBar::handle:horizontal:hover {
+  background: palette(dark);
+}
+
+QScrollBar::add-line,
+QScrollBar::sub-line {
+  width: 0;
+  height: 0;
+}
+
+QScrollBar::add-page,
+QScrollBar::sub-page {
+  background: transparent;
+}
+
+/* ---------- misc ---------- */
+
+QToolTip {
+  background-color: palette(base);
+  color: palette(text);
+  border: 1px solid palette(mid);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+QStatusBar {
+  background: transparent;
+}
+
+QStatusBar::item {
+  border: none;
+}
+
+QRadioButton,
+QCheckBox {
+  spacing: 8px;
+  padding: 2px;
+}
+
+QSplitter::handle {
+  background: palette(midlight);
+}

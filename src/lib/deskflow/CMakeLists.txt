@@ -40,6 +40,8 @@ add_library(${lib_name} STATIC ${PLATFORM_CODE}
   DeskflowException.cpp
   DeskflowException.h
   DisplayInvalidException.h
+  FileClipboardData.cpp
+  FileClipboardData.h
   IApp.h
   IClient.h
   IClipboard.cpp

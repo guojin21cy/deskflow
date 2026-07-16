@@ -15,6 +15,7 @@
 
 #include "dialogs/AboutDialog.h"
 #include "dialogs/ClientConfigDialog.h"
+#include "dialogs/ClipboardHistoryDialog.h"
 #include "dialogs/FingerprintDialog.h"
 #include "dialogs/ServerConfigDialog.h"
 #include "dialogs/SettingsDialog.h"
@@ -25,6 +26,7 @@
 #include "common/VersionInfo.h"
 #include "gui/Messages.h"
 #include "gui/TlsUtility.h"
+#include "gui/core/ClipboardHistory.h"
 #include "gui/core/CoreProcess.h"
 #include "gui/ipc/DaemonIpcClient.h"
 #include "gui/widgets/LogDock.h"
@@ -68,8 +70,10 @@ MainWindow::MainWindow()
       m_menuEdit{new QMenu(this)},
       m_menuView{new QMenu(this)},
       m_menuHelp{new QMenu(this)},
+      m_clipboardHistory{new ClipboardHistory(this)},
       m_actionAbout{new QAction(this)},
       m_actionClearSettings{new QAction(this)},
+      m_actionClipboardHistory{new QAction(this)},
       m_actionReportBug{new QAction(this)},
       m_actionMinimize{new QAction(this)},
       m_actionQuit{new QAction(this)},
@@ -110,6 +114,9 @@ MainWindow::MainWindow()
 
   m_actionSettings->setIcon(QIcon::fromTheme(QStringLiteral("configure")));
   m_actionSettings->setMenuRole(QAction::PreferencesRole);
+
+  m_actionClipboardHistory->setIcon(QIcon::fromTheme(QStringLiteral("edit-paste")));
+  m_actionClipboardHistory->setMenuRole(QAction::NoRole);
 
   m_actionStartCore->setIcon(QIcon::fromTheme(QStringLiteral("system-run")));
   m_actionStartCore->setMenuRole(QAction::NoRole);
@@ -260,6 +267,7 @@ void MainWindow::connectSlots()
   connect(m_actionTrayQuit, &QAction::triggered, this, &MainWindow::close);
   connect(m_actionRestore, &QAction::triggered, this, &MainWindow::showAndActivate);
   connect(m_actionSettings, &QAction::triggered, this, &MainWindow::openSettings);
+  connect(m_actionClipboardHistory, &QAction::triggered, this, &MainWindow::openClipboardHistory);
   connect(m_actionStartCore, &QAction::triggered, this, &MainWindow::startCore);
   connect(m_actionRestartCore, &QAction::triggered, this, &MainWindow::resetCore);
   connect(m_actionStopCore, &QAction::triggered, this, &MainWindow::stopCore);
@@ -485,6 +493,16 @@ void MainWindow::openSettings()
   }
 }
 
+void MainWindow::openClipboardHistory()
+{
+  if (m_clipboardHistoryDialog == nullptr) {
+    m_clipboardHistoryDialog = new ClipboardHistoryDialog(m_clipboardHistory, this);
+  }
+  m_clipboardHistoryDialog->show();
+  m_clipboardHistoryDialog->raise();
+  m_clipboardHistoryDialog->activateWindow();
+}
+
 void MainWindow::resetCore()
 {
   m_coreProcess.restart();
@@ -668,6 +686,7 @@ void MainWindow::createMenuBar()
   m_menuFile->addAction(m_actionQuit);
 
   m_menuEdit->addAction(m_actionSettings);
+  m_menuEdit->addAction(m_actionClipboardHistory);
 
   m_menuView->addAction(m_logDock->toggleViewAction());
 
@@ -689,8 +708,10 @@ void MainWindow::setupTrayIcon()
 {
   auto trayMenu = new QMenu(this);
   trayMenu->addActions(
-      {m_actionStartCore, m_actionRestartCore, m_actionStopCore, m_actionMinimize, m_actionRestore, m_actionTrayQuit}
+      {m_actionStartCore, m_actionRestartCore, m_actionStopCore, m_actionClipboardHistory, m_actionMinimize,
+       m_actionRestore, m_actionTrayQuit}
   );
+  trayMenu->insertSeparator(m_actionClipboardHistory);
   trayMenu->insertSeparator(m_actionMinimize);
   trayMenu->insertSeparator(m_actionTrayQuit);
   m_trayIcon->setContextMenu(trayMenu);
@@ -1057,6 +1078,7 @@ void MainWindow::updateText()
   //: %1 will be the replaced with the appname
   m_actionRestore->setText(tr("&Open %1").arg(kAppName));
   m_actionSettings->setText(tr("&Preferences"));
+  m_actionClipboardHistory->setText(tr("Clipboard &History..."));
   m_actionStartCore->setText(tr("&Start"));
   m_actionRestartCore->setText(tr("Rest&art"));
   m_actionStopCore->setText(tr("S&top"));

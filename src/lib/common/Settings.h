@@ -75,6 +75,8 @@ public:
   {
     inline static const auto Autohide = QStringLiteral("gui/autoHide");
     inline static const auto AutoStartCore = QStringLiteral("gui/startCoreWithGui");
+    inline static const auto ClipboardHistoryEnabled = QStringLiteral("gui/clipboardHistoryEnabled");
+    inline static const auto ClipboardHistoryMaxItems = QStringLiteral("gui/clipboardHistoryMaxItems");
     inline static const auto AutoUpdateCheck = QStringLiteral("gui/enableUpdateCheck");
     inline static const auto UpdateCheckUrl = QStringLiteral("gui/updateCheckUrl");
     inline static const auto CloseReminder = QStringLiteral("gui/closeReminder");
@@ -278,6 +280,8 @@ private:
     , Settings::Gui::Autohide
     , Settings::Gui::AutoStartCore
     , Settings::Gui::AutoUpdateCheck
+    , Settings::Gui::ClipboardHistoryEnabled
+    , Settings::Gui::ClipboardHistoryMaxItems
     , Settings::Gui::UpdateCheckUrl
     , Settings::Gui::CloseReminder
     , Settings::Gui::CloseToTray
@@ -341,6 +345,7 @@ private:
   inline static const QStringList m_defaultTrueValues = {
       Settings::Core::UseHooks
     , Settings::Client::LanguageSync
+    , Settings::Gui::ClipboardHistoryEnabled
     , Settings::Gui::CloseToTray
     , Settings::Gui::CloseReminder
     , Settings::Gui::LogExpanded

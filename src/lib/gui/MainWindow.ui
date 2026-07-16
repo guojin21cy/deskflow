@@ -19,34 +19,49 @@
    </property>
    <layout class="QVBoxLayout" name="_2">
     <property name="spacing">
-     <number>3</number>
+     <number>8</number>
+    </property>
+    <property name="leftMargin">
+     <number>12</number>
+    </property>
+    <property name="topMargin">
+     <number>10</number>
+    </property>
+    <property name="rightMargin">
+     <number>12</number>
+    </property>
+    <property name="bottomMargin">
+     <number>8</number>
     </property>
     <item>
      <widget class="QWidget" name="widget" native="true">
       <property name="minimumSize">
        <size>
         <width>0</width>
-        <height>28</height>
+        <height>32</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>28</height>
+        <height>32</height>
        </size>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <property name="spacing">
+        <number>6</number>
+       </property>
        <property name="leftMargin">
-        <number>3</number>
+        <number>2</number>
        </property>
        <property name="topMargin">
-        <number>3</number>
+        <number>0</number>
        </property>
        <property name="rightMargin">
-        <number>3</number>
+        <number>2</number>
        </property>
        <property name="bottomMargin">
-        <number>3</number>
+        <number>0</number>
        </property>
        <item>
         <widget class="QLabel" name="labelComputerName">
@@ -159,6 +174,21 @@
        <string/>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>12</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <property name="bottomMargin">
+        <number>12</number>
+       </property>
        <item>
         <widget class="QWidget" name="widgetModeSelection" native="true">
          <property name="sizePolicy">

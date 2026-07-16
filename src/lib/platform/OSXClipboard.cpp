@@ -9,6 +9,7 @@
 
 #include "arch/ArchException.h"
 #include "base/Log.h"
+#include "deskflow/FileClipboardData.h"
 #include "platform/OSXClipboardBMPConverter.h"
 #include "platform/OSXClipboardHTMLConverter.h"
 #include "platform/OSXClipboardTextConverter.h"
@@ -80,6 +81,11 @@ void OSXClipboard::add(Format format, const std::string &data)
   if (m_pboard == nullptr)
     return;
 
+  if (format == IClipboard::Format::Files) {
+    addFiles(data);
+    return;
+  }
+
   LOG_DEBUG("add %d bytes to clipboard format: %d", data.size(), format);
   if (format == IClipboard::Format::Text) {
     LOG_DEBUG("format of data to be added to clipboard was kText");
@@ -136,6 +142,10 @@ bool OSXClipboard::has(Format format) const
   if (m_pboard == nullptr)
     return false;
 
+  if (format == IClipboard::Format::Files) {
+    return hasFiles();
+  }
+
   PasteboardItemID item;
   PasteboardGetItemIdentifier(m_pboard, (CFIndex)1, &item);
 
@@ -164,6 +174,10 @@ std::string OSXClipboard::get(Format format) const
 
   if (m_pboard == nullptr)
     return result;
+
+  if (format == IClipboard::Format::Files) {
+    return getFiles();
+  }
 
   PasteboardGetItemIdentifier(m_pboard, (CFIndex)1, &item);
 
@@ -208,6 +222,143 @@ std::string OSXClipboard::get(Format format) const
     CFRelease(buffer);
 
   return converter->toIClipboard(result);
+}
+
+namespace {
+
+const CFStringRef kFileURLType = CFSTR("public.file-url");
+
+// Resolve a pasteboard file-url flavor payload to a POSIX path.
+std::string fileURLDataToPath(CFDataRef data)
+{
+  if (data == nullptr) {
+    return std::string();
+  }
+
+  CFURLRef url = CFURLCreateWithBytes(
+      kCFAllocatorDefault, CFDataGetBytePtr(data), CFDataGetLength(data), kCFStringEncodingUTF8, nullptr
+  );
+  if (url == nullptr) {
+    return std::string();
+  }
+
+  std::string path;
+  if (CFStringRef fsPath = CFURLCopyFileSystemPath(url, kCFURLPOSIXPathStyle); fsPath != nullptr) {
+    if (const char *cstr = CFStringGetCStringPtr(fsPath, kCFStringEncodingUTF8); cstr != nullptr) {
+      path = cstr;
+    } else {
+      // fall back to copying into a buffer sized from the string length
+      const CFIndex maxLen =
+          CFStringGetMaximumSizeForEncoding(CFStringGetLength(fsPath), kCFStringEncodingUTF8) + 1;
+      std::string buffer(static_cast<size_t>(maxLen), '\0');
+      if (CFStringGetCString(fsPath, buffer.data(), maxLen, kCFStringEncodingUTF8)) {
+        path = buffer.c_str();
+      }
+    }
+    CFRelease(fsPath);
+  }
+
+  CFRelease(url);
+  return path;
+}
+
+} // namespace
+
+bool OSXClipboard::hasFiles() const
+{
+  ItemCount count = 0;
+  if (PasteboardGetItemCount(m_pboard, &count) != noErr) {
+    return false;
+  }
+
+  for (ItemCount i = 1; i <= count; ++i) {
+    PasteboardItemID item;
+    if (PasteboardGetItemIdentifier(m_pboard, static_cast<CFIndex>(i), &item) != noErr) {
+      continue;
+    }
+    PasteboardFlavorFlags flags;
+    if (PasteboardGetItemFlavorFlags(m_pboard, item, kFileURLType, &flags) == noErr) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+std::string OSXClipboard::getFiles() const
+{
+  ItemCount count = 0;
+  if (PasteboardGetItemCount(m_pboard, &count) != noErr) {
+    return std::string();
+  }
+
+  std::vector<std::string> paths;
+  for (ItemCount i = 1; i <= count; ++i) {
+    PasteboardItemID item;
+    if (PasteboardGetItemIdentifier(m_pboard, static_cast<CFIndex>(i), &item) != noErr) {
+      continue;
+    }
+
+    CFDataRef flavorData = nullptr;
+    if (PasteboardCopyItemFlavorData(m_pboard, item, kFileURLType, &flavorData) != noErr) {
+      continue;
+    }
+
+    const std::string path = fileURLDataToPath(flavorData);
+    CFRelease(flavorData);
+    if (!path.empty()) {
+      paths.push_back(path);
+    }
+  }
+
+  std::vector<deskflow::ClipboardFile> files;
+  if (!deskflow::FileClipboardData::readFiles(paths, files)) {
+    return std::string();
+  }
+
+  LOG_DEBUG("read %zu file(s) from clipboard", files.size());
+  return deskflow::FileClipboardData::marshall(files);
+}
+
+void OSXClipboard::addFiles(const std::string &data)
+{
+  std::vector<deskflow::ClipboardFile> files;
+  if (!deskflow::FileClipboardData::unmarshall(data, files) || files.empty()) {
+    LOG_DEBUG("no files to add to clipboard");
+    return;
+  }
+
+  // materialise the bundled files on disk; the pasteboard references them by URL
+  const std::vector<std::string> paths = deskflow::FileClipboardData::writeToTempDir(files);
+  if (paths.empty()) {
+    LOG_WARN("failed to write pasted files to disk");
+    return;
+  }
+
+  for (size_t i = 0; i < paths.size(); ++i) {
+    CFURLRef url = CFURLCreateFromFileSystemRepresentation(
+        kCFAllocatorDefault, reinterpret_cast<const UInt8 *>(paths[i].data()),
+        static_cast<CFIndex>(paths[i].size()), false
+    );
+    if (url == nullptr) {
+      continue;
+    }
+
+    if (CFStringRef urlString = CFURLGetString(url); urlString != nullptr) {
+      if (CFDataRef urlData =
+              CFStringCreateExternalRepresentation(kCFAllocatorDefault, urlString, kCFStringEncodingUTF8, 0);
+          urlData != nullptr) {
+        // one pasteboard item per file, each carrying a file-url flavor
+        auto itemID = reinterpret_cast<PasteboardItemID>(static_cast<intptr_t>(i + 1));
+        PasteboardPutItemFlavor(m_pboard, itemID, kFileURLType, urlData, kPasteboardFlavorNoFlags);
+        CFRelease(urlData);
+      }
+    }
+
+    CFRelease(url);
+  }
+
+  LOG_DEBUG("added %zu file(s) to clipboard", paths.size());
 }
 
 void OSXClipboard::clearConverters()

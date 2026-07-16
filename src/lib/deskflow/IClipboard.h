@@ -45,13 +45,19 @@ public:
   \c kHTML is a text format encoded in UTF-8 and containing a valid
   HTML fragment (but not necessarily a complete HTML document).
   Newlines are LF.
+
+  \c Files carries one or more files (names and contents) bundled by
+  FileClipboardData.  This lets a file copied on one screen be pasted
+  on another.  Because the bundle embeds the file contents, its size
+  is bounded by the clipboard size limit.
   */
   enum class Format
   {
-    Text,        //!< Text format, UTF-8, newline is LF
-    HTML,        //!< HTML format, HTML fragment, UTF-8, newline is LF
-    Bitmap,      //!< Bitmap format, BMP 24/32bpp, BI_RGB
-    TotalFormats //!< The number of clipboard formats supported
+    Text,         //!< Text format, UTF-8, newline is LF
+    HTML,         //!< HTML format, HTML fragment, UTF-8, newline is LF
+    Bitmap,       //!< Bitmap format, BMP 24/32bpp, BI_RGB
+    Files,        //!< File bundle, see FileClipboardData
+    TotalFormats  //!< The number of clipboard formats supported
   };
 
   //! @name manipulators

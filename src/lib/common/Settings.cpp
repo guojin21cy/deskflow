@@ -229,7 +229,10 @@ QVariant Settings::defaultValue(const QString &key)
     return 250;
 
   if (key == Server::ClipboardSize)
-    return 3; // 3 MiB
+    return 100; // 100 MiB (large enough to carry copied files, not just text/images)
+
+  if (key == Gui::ClipboardHistoryMaxItems)
+    return 50;
 
   return QVariant();
 }

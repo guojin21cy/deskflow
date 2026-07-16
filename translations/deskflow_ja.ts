@@ -191,6 +191,71 @@ p, li { white-space: pre-wrap; }
     </message>
 </context>
 <context>
+    <name>ClipboardHistoryDialog</name>
+    <message>
+        <source>Save history</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clear all</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clipboard History</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Search history…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>When unchecked, new clipboard changes are not recorded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Image %1 × %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> +%1 more</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n item(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Clear clipboard history</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove all clipboard history entries? This cannot be undone.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>FingerprintDialog</name>
     <message>
         <source>Local Fingerprints</source>
@@ -491,6 +556,10 @@ A bound IP is now invalid, you may need to restart the server.</source>
     <message>
         <source>&amp;Preferences</source>
         <translation>設定(&amp;P)</translation>
+    </message>
+    <message>
+        <source>Clipboard &amp;History...</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Rest&amp;art</source>

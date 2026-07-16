@@ -39,6 +39,13 @@ public:
 private:
   void clearConverters();
 
+  // Files format is handled directly (not via a converter) because file
+  // URLs live in one pasteboard item per file, which the converter
+  // dispatch (single item, single flavor) cannot express.
+  bool hasFiles() const;
+  std::string getFiles() const;
+  void addFiles(const std::string &data);
+
 private:
   using ConverterList = std::vector<IOSXClipboardConverter *>;
 
