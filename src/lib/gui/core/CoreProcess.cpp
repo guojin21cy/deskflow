@@ -30,6 +30,7 @@
 namespace deskflow::gui {
 
 const int kRetryDelay = 1000;
+const int kStopTimeout = 5000;
 const auto kLineSplitRegex = QRegularExpression("\r|\n|\r\n");
 
 QString CoreProcess::processModeToString(const Settings::ProcessMode mode)
@@ -174,6 +175,16 @@ void CoreProcess::checkExistingProcess()
 void CoreProcess::onProcessFinished(int exitCode, QProcess::ExitStatus)
 {
   using enum ProcessState;
+
+  auto *finishedProcess = qobject_cast<QProcess *>(sender());
+  if (finishedProcess == m_process) {
+    m_process = nullptr;
+  }
+  if (finishedProcess) {
+    finishedProcess->deleteLater();
+  }
+  disconnectCoreIpcClient();
+
   setConnectionState(ConnectionState::Disconnected);
 
   if (m_retryTimer.isActive()) {
@@ -187,6 +198,7 @@ void CoreProcess::onProcessFinished(int exitCode, QProcess::ExitStatus)
       return;
     }
     qWarning("desktop process exited with code: %d", exitCode);
+    finishPendingRestart();
     return;
   }
 
@@ -199,6 +211,7 @@ void CoreProcess::onProcessFinished(int exitCode, QProcess::ExitStatus)
     m_retryTimer.start(kRetryDelay);
   } else {
     setProcessState(Stopped);
+    finishPendingRestart();
   }
 }
 
@@ -268,7 +281,7 @@ void CoreProcess::startProcessFromDaemon()
   }
 }
 
-void CoreProcess::stopForegroundProcess() const
+void CoreProcess::stopForegroundProcess()
 {
   if (m_processState != ProcessState::Stopping) {
     qFatal("core process must be in stopping state");
@@ -281,8 +294,21 @@ void CoreProcess::stopForegroundProcess() const
   qInfo("stopping core desktop process");
 
   if (m_process->state() == QProcess::ProcessState::Running) {
-    qDebug("process is running, closing");
-    m_process->close();
+    if (m_coreIpcClient && m_coreIpcClient->isConnected()) {
+      qDebug("requesting graceful core process shutdown");
+      m_coreIpcClient->sendStop();
+    } else {
+      qWarning("core ipc is unavailable, terminating core process");
+      m_process->terminate();
+    }
+
+    auto *process = m_process;
+    QTimer::singleShot(kStopTimeout, process, [process] {
+      if (process->state() != QProcess::ProcessState::NotRunning) {
+        qWarning("core process did not stop gracefully, killing it");
+        process->kill();
+      }
+    });
   } else {
     qDebug("process is not running, skipping terminate");
   }
@@ -461,12 +487,6 @@ void CoreProcess::stop(std::optional<ProcessMode> processModeOption)
 
   qInfo("stopping core process (%s mode)", qPrintable(processModeToString(processMode)));
 
-  if (m_coreIpcClient) {
-    m_coreIpcClient->disconnectFromServer();
-    m_coreIpcClient->deleteLater();
-    m_coreIpcClient = nullptr;
-  }
-
   if (m_processState == ProcessState::Starting) {
     qDebug("core process is starting, cancelling");
     setProcessState(ProcessState::Stopped);
@@ -474,6 +494,7 @@ void CoreProcess::stop(std::optional<ProcessMode> processModeOption)
     setProcessState(ProcessState::Stopping);
 
     if (processMode == ProcessMode::Service) {
+      disconnectCoreIpcClient();
       stopProcessFromDaemon();
     } else if (processMode == ProcessMode::Desktop) {
       stopForegroundProcess();
@@ -490,7 +511,18 @@ void CoreProcess::restart()
 {
   qDebug("restarting core process");
 
+  if (m_processState == ProcessState::Starting || m_processState == ProcessState::Stopping || m_restartPending) {
+    qWarning("core process restart is already in progress");
+    return;
+  }
+
+  if (m_processState == ProcessState::Stopped) {
+    start();
+    return;
+  }
+
   const auto processMode = Settings::value(Settings::Core::ProcessMode).value<ProcessMode>();
+  m_restartPending = true;
 
   if (m_lastProcessMode != std::nullopt && m_lastProcessMode != processMode) {
     const auto debugMessage =
@@ -505,7 +537,28 @@ void CoreProcess::restart()
     stop();
   }
 
+  finishPendingRestart();
+}
+
+void CoreProcess::finishPendingRestart()
+{
+  if (!m_restartPending || m_processState != ProcessState::Stopped) {
+    return;
+  }
+
+  m_restartPending = false;
   start();
+}
+
+void CoreProcess::disconnectCoreIpcClient()
+{
+  if (!m_coreIpcClient) {
+    return;
+  }
+
+  m_coreIpcClient->disconnectFromServer();
+  m_coreIpcClient->deleteLater();
+  m_coreIpcClient = nullptr;
 }
 
 void CoreProcess::cleanup()
@@ -513,9 +566,22 @@ void CoreProcess::cleanup()
   qInfo("cleaning up core process");
 
   const auto isDesktop = Settings::value(Settings::Core::ProcessMode).value<ProcessMode>() == ProcessMode::Desktop;
-  const auto isRunning = m_processState == ProcessState::Started;
-  if (isDesktop && isRunning) {
+  if (!isDesktop || !m_process || m_process->state() == QProcess::ProcessState::NotRunning) {
+    return;
+  }
+
+  m_restartPending = false;
+  m_retryTimer.stop();
+
+  auto *process = m_process;
+  if (m_processState == ProcessState::Started) {
     stop();
+  }
+
+  if (!process->waitForFinished(kStopTimeout)) {
+    qWarning("core process did not stop before GUI shutdown, killing it");
+    process->kill();
+    process->waitForFinished(kRetryDelay);
   }
 }
 
