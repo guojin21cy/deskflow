@@ -76,6 +76,11 @@ bool OSXClipboard::synchronize()
   return false;
 }
 
+void OSXClipboard::setMaximumFileSize(uint64_t maxBytes)
+{
+  m_maximumFileSize = maxBytes;
+}
+
 void OSXClipboard::add(Format format, const std::string &data)
 {
   if (m_pboard == nullptr)
@@ -311,7 +316,7 @@ std::string OSXClipboard::getFiles() const
   }
 
   std::vector<deskflow::ClipboardFile> files;
-  if (!deskflow::FileClipboardData::readFiles(paths, files)) {
+  if (!deskflow::FileClipboardData::readFiles(paths, files, m_maximumFileSize)) {
     return std::string();
   }
 

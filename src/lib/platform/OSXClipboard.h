@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "deskflow/FileClipboardData.h"
 #include "deskflow/IClipboard.h"
 
 #include <Carbon/Carbon.h>
@@ -35,6 +36,7 @@ public:
   std::string get(Format) const override;
 
   bool synchronize();
+  void setMaximumFileSize(uint64_t maxBytes);
 
 private:
   void clearConverters();
@@ -52,6 +54,7 @@ private:
   mutable Time m_time;
   ConverterList m_converters;
   PasteboardRef m_pboard;
+  uint64_t m_maximumFileSize = deskflow::FileClipboardData::kMaxTotalBytes;
 };
 
 //! Clipboard format converter interface

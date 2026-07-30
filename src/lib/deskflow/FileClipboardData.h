@@ -72,9 +72,12 @@ public:
   /*!
   \p paths are UTF-8 encoded.  Files that cannot be read are skipped.
   Returns false (and clears \p out) if the combined size exceeds
-  kMaxTotalBytes, or if no file could be read.
+  \p maxTotalBytes or kMaxTotalBytes, or if no file could be read.
   */
-  static bool readFiles(const std::vector<std::string> &paths, std::vector<ClipboardFile> &out);
+  static bool readFiles(
+      const std::vector<std::string> &paths, std::vector<ClipboardFile> &out,
+      uint64_t maxTotalBytes = kMaxTotalBytes
+  );
 
   //! Write \p files to a fresh unique directory under the system temp dir.
   /*!

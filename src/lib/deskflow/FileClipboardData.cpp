@@ -8,6 +8,7 @@
 
 #include "base/Log.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <random>
@@ -157,24 +158,29 @@ bool FileClipboardData::readFile(const std::string &path, ClipboardFile &out)
   return true;
 }
 
-bool FileClipboardData::readFiles(const std::vector<std::string> &paths, std::vector<ClipboardFile> &out)
+bool FileClipboardData::readFiles(
+    const std::vector<std::string> &paths, std::vector<ClipboardFile> &out, uint64_t maxTotalBytes
+)
 {
   out.clear();
 
   // sum sizes first so a huge selection is rejected before we read anything
   std::error_code ec;
   uint64_t total = 0;
+  const uint64_t sizeLimit = std::min(maxTotalBytes, kMaxTotalBytes);
   for (const auto &path : paths) {
     const auto size = std::filesystem::file_size(pathFromUtf8(path), ec);
     if (ec) {
       ec.clear();
       continue; // unreadable file, skipped during the read pass too
     }
-    total += size;
-    if (total > kMaxTotalBytes) {
-      LOG_WARN("clipboard: file selection too large to copy (%llu bytes)", static_cast<unsigned long long>(total));
+    if (size > sizeLimit - total) {
+      LOG_WARN(
+          "clipboard: file selection exceeds the %llu-byte limit", static_cast<unsigned long long>(sizeLimit)
+      );
       return false;
     }
+    total += size;
   }
 
   for (const auto &path : paths) {

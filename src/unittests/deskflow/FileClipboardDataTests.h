@@ -24,6 +24,7 @@ private Q_SLOTS:
   void sanitizeNameRejectsTraversal();
   void writeThenReadRoundTrip();
   void readFilesSkipsMissing();
+  void readFilesRejectsSelectionOverLimit();
 
 private:
   Log m_log;

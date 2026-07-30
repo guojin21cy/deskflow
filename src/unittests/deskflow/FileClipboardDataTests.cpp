@@ -8,6 +8,8 @@
 
 #include "deskflow/FileClipboardData.h"
 
+#include <QTemporaryFile>
+
 using deskflow::ClipboardFile;
 using deskflow::FileClipboardData;
 
@@ -133,6 +135,18 @@ void FileClipboardDataTests::readFilesSkipsMissing()
 {
   std::vector<ClipboardFile> out;
   QVERIFY(!FileClipboardData::readFiles({"/deskflow/does/not/exist/a", "/deskflow/does/not/exist/b"}, out));
+  QVERIFY(out.empty());
+}
+
+void FileClipboardDataTests::readFilesRejectsSelectionOverLimit()
+{
+  QTemporaryFile file;
+  QVERIFY(file.open());
+  QCOMPARE(file.write("data"), 4);
+  file.close();
+
+  std::vector<ClipboardFile> out{{"stale", "stale"}};
+  QVERIFY(!FileClipboardData::readFiles({file.fileName().toStdString()}, out, 3));
   QVERIFY(out.empty());
 }
 
