@@ -75,8 +75,7 @@ public:
   \p maxTotalBytes or kMaxTotalBytes, or if no file could be read.
   */
   static bool readFiles(
-      const std::vector<std::string> &paths, std::vector<ClipboardFile> &out,
-      uint64_t maxTotalBytes = kMaxTotalBytes
+      const std::vector<std::string> &paths, std::vector<ClipboardFile> &out, uint64_t maxTotalBytes = kMaxTotalBytes
   );
 
   //! Write \p files to a fresh unique directory under the system temp dir.

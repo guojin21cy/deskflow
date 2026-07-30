@@ -175,9 +175,7 @@ bool FileClipboardData::readFiles(
       continue; // unreadable file, skipped during the read pass too
     }
     if (size > sizeLimit - total) {
-      LOG_WARN(
-          "clipboard: file selection exceeds the %llu-byte limit", static_cast<unsigned long long>(sizeLimit)
-      );
+      LOG_WARN("clipboard: file selection exceeds the %llu-byte limit", static_cast<unsigned long long>(sizeLimit));
       return false;
     }
     total += size;

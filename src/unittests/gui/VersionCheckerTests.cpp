@@ -30,11 +30,10 @@ void VersionCheckerTests::parsesMatchingInstaller()
   QVERIFY(release.has_value());
   QCOMPARE(release->version, QStringLiteral("1.26.1"));
   QCOMPARE(
-      release->downloadUrl,
-      QUrl(QStringLiteral(
-          "https://github.com/guojin21cy/deskflow/releases/download/v1.26.1/"
-          "deskflow-1.26.1-macos-arm64.dmg"
-      ))
+      release->downloadUrl, QUrl(QStringLiteral(
+                                "https://github.com/guojin21cy/deskflow/releases/download/v1.26.1/"
+                                "deskflow-1.26.1-macos-arm64.dmg"
+                            ))
   );
 }
 
@@ -54,10 +53,7 @@ void VersionCheckerTests::fallsBackToReleasePage()
   const auto release = VersionChecker::parseRelease(response, QStringLiteral("-macos-arm64.dmg"));
 
   QVERIFY(release.has_value());
-  QCOMPARE(
-      release->downloadUrl,
-      QUrl(QStringLiteral("https://github.com/guojin21cy/deskflow/releases/tag/v1.26.1"))
-  );
+  QCOMPARE(release->downloadUrl, QUrl(QStringLiteral("https://github.com/guojin21cy/deskflow/releases/tag/v1.26.1")));
 }
 
 void VersionCheckerTests::rejectsUntrustedReleasePage()
@@ -87,10 +83,7 @@ void VersionCheckerTests::ignoresUntrustedAsset()
   const auto release = VersionChecker::parseRelease(response, QStringLiteral("-macos-arm64.dmg"));
 
   QVERIFY(release.has_value());
-  QCOMPARE(
-      release->downloadUrl,
-      QUrl(QStringLiteral("https://github.com/guojin21cy/deskflow/releases/tag/v1.26.1"))
-  );
+  QCOMPARE(release->downloadUrl, QUrl(QStringLiteral("https://github.com/guojin21cy/deskflow/releases/tag/v1.26.1")));
 }
 
 void VersionCheckerTests::ignoresMismatchedAssetPath()
@@ -109,10 +102,7 @@ void VersionCheckerTests::ignoresMismatchedAssetPath()
   const auto release = VersionChecker::parseRelease(response, QStringLiteral("-macos-arm64.dmg"));
 
   QVERIFY(release.has_value());
-  QCOMPARE(
-      release->downloadUrl,
-      QUrl(QStringLiteral("https://github.com/guojin21cy/deskflow/releases/tag/v1.26.1"))
-  );
+  QCOMPARE(release->downloadUrl, QUrl(QStringLiteral("https://github.com/guojin21cy/deskflow/releases/tag/v1.26.1")));
 }
 
 void VersionCheckerTests::rejectsInvalidResponse()

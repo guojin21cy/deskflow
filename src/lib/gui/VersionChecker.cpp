@@ -21,8 +21,7 @@
 #include <QSysInfo>
 #include <climits>
 
-namespace
-{
+namespace {
 const auto kGitHubHost = QStringLiteral("github.com");
 const auto kReleasePath = QStringLiteral("/guojin21cy/deskflow/releases");
 
@@ -91,8 +90,7 @@ void VersionChecker::replyFinished(QNetworkReply *reply)
   }
 }
 
-std::optional<VersionChecker::Release>
-VersionChecker::parseRelease(const QByteArray &data, const QString &assetSuffix)
+std::optional<VersionChecker::Release> VersionChecker::parseRelease(const QByteArray &data, const QString &assetSuffix)
 {
   QJsonParseError error;
   const auto document = QJsonDocument::fromJson(data, &error);
