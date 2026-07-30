@@ -85,7 +85,7 @@ jobs:
     name: ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.runs-on }}
     permissions:
-      contents: write
+      contents: read
     container: ${{ matrix.target.container }}
     timeout-minutes: ${{ matrix.target.timeout }}
     strategy:
@@ -116,12 +116,6 @@ jobs:
             timeout: 10
             qt-version: 6.11.1
             config-args: '-DCMAKE_OSX_ARCHITECTURES="arm64" -DCMAKE_OSX_DEPLOYMENT_TARGET=14'
-
-          - name: "macos-x64"
-            runs-on: macos-15-intel
-            timeout: 20
-            qt-version: 6.9.3
-            config-args: '-DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DCMAKE_OSX_SYSROOT=/Applications/Xcode_16.4.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk'
 
           - name: "debian-x86_64"
             runs-on: ubuntu-latest
@@ -315,19 +309,42 @@ jobs:
         with:
           like: ${{ matrix.target.like }}
 
-      - name: Update Development Documentation
-        if: matrix.target.like == 'arch' && github.ref == 'refs/heads/master'
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Upload Development Documentation
+        if: matrix.target.like == 'arch' && github.repository == 'deskflow/deskflow' && github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v7
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: build/docs/dev/html
-          force_orphan: true
+          name: development-documentation
+          path: build/docs/dev/html
 
       - name: Upload
         uses: actions/upload-artifact@v7
         with:
           name: package-${{ env.PACKAGE_PREFIX }}-${{ matrix.target.name }}
           path: ${{github.workspace}}/build/deskflow[-_]*.*
+
+  publish-development-documentation:
+    needs: main-build
+    if: github.repository == 'deskflow/deskflow' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download Development Documentation
+        uses: actions/download-artifact@v8
+        with:
+          name: development-documentation
+          path: development-documentation
+
+      - name: Update Development Documentation
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: development-documentation
+          force_orphan: true
 
   # Technically, "unix" is a misnomer, but we use it here to mean "Unix-like BSD-derived".
   unix:
@@ -417,6 +434,8 @@ jobs:
     needs: ci-passed
     if: (github.ref == 'refs/heads/master') || (contains(github.ref, '/tags/v'))
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Fancy Checkout
@@ -441,6 +460,7 @@ jobs:
 
       - name: Update continuous tag
         if: (github.ref == 'refs/heads/master') && !(contains(github.ref, '/tags/v'))
+        continue-on-error: true
         run: gh release delete continuous --cleanup-tag
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -473,6 +493,7 @@ jobs:
             sums.txt
 
       - name: Update Homebrewtap
+        if: github.repository == 'deskflow/deskflow'
         shell: bash
         run: |
           curl -L -X POST \

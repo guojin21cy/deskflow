@@ -28,6 +28,8 @@ class QAction;
 class QMenu;
 class QLocalServer;
 
+class ClipboardHistory;
+class ClipboardHistoryDialog;
 class DeskflowApplication;
 class LogDock;
 class StatusBar;
@@ -98,6 +100,7 @@ private:
   void openHelpUrl() const;
   void openGetNewVersionUrl() const;
   void openSettings();
+  void openClipboardHistory();
   void startCore();
   void stopCore();
   bool saveServerConfig();
@@ -188,9 +191,14 @@ private:
   QMenu *m_menuView = nullptr;
   QMenu *m_menuHelp = nullptr;
 
+  // Clipboard history
+  ClipboardHistory *m_clipboardHistory = nullptr;
+  ClipboardHistoryDialog *m_clipboardHistoryDialog = nullptr;
+
   // Window Actions
   QAction *m_actionAbout = nullptr;
   QAction *m_actionClearSettings = nullptr;
+  QAction *m_actionClipboardHistory = nullptr;
   QAction *m_actionReportBug = nullptr;
   QAction *m_actionMinimize = nullptr;
   QAction *m_actionQuit = nullptr;

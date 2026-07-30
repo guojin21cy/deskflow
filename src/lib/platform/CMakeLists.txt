@@ -32,6 +32,8 @@ if(WIN32)
     MSWindowsClipboardBitmapConverter.h
     MSWindowsClipboardFacade.cpp
     MSWindowsClipboardFacade.h
+    MSWindowsClipboardFileConverter.cpp
+    MSWindowsClipboardFileConverter.h
     MSWindowsClipboardHTMLConverter.cpp
     MSWindowsClipboardHTMLConverter.h
     MSWindowsClipboardUTF16Converter.cpp
@@ -174,6 +176,11 @@ endif()
 add_library(platform STATIC ${PLATFORM_SOURCES})
 
 target_link_libraries(platform client ${libs})
+
+if(WIN32)
+  # Shell32 provides DragQueryFile used by the CF_HDROP clipboard converter
+  target_link_libraries(platform Shell32)
+endif()
 
 if(UNIX)
   target_link_libraries(

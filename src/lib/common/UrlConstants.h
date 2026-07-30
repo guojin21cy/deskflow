@@ -16,9 +16,10 @@ const auto kOrgDomain = QStringLiteral("deskflow.org");
 const auto kUrlSourceQuery = QStringLiteral("source=gui");
 const auto kUrlApp = QStringLiteral("https://%1").arg(kOrgDomain);
 const auto kUrlHelp = QStringLiteral("%1/help?%2").arg(kUrlApp, kUrlSourceQuery);
-const auto kUrlDownload = QStringLiteral("%1/download?%2").arg(kUrlApp, kUrlSourceQuery);
+const auto kUrlRepository = QStringLiteral("https://github.com/guojin21cy/deskflow");
+const auto kUrlDownload = QStringLiteral("%1/releases/latest").arg(kUrlRepository);
 
-const auto kUrlUpdateCheck = QStringLiteral("https://api.%1/version").arg(kOrgDomain);
+const auto kUrlUpdateCheck = QStringLiteral("https://api.github.com/repos/guojin21cy/deskflow/releases/latest");
 
 #if defined(Q_OS_LINUX)
 const auto kUrlGnomeTrayFix = QStringLiteral("https://extensions.gnome.org/extension/615/appindicator-support/");

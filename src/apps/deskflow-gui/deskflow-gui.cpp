@@ -19,6 +19,7 @@
 
 #include <QApplication>
 #include <QCommandLineParser>
+#include <QFile>
 #include <QLocalSocket>
 #include <QMessageBox>
 #include <QSharedMemory>
@@ -118,8 +119,14 @@ int main(int argc, char *argv[])
     return s_exitDuplicate;
   }
 
-  if (!deskflow::platform::isMac() && qEnvironmentVariable("XDG_CURRENT_DESKTOP") != QLatin1String("KDE")) {
+  // Use the Fusion style everywhere (except KDE, which themes Qt itself) so
+  // the application stylesheet renders consistently across platforms.
+  if (qEnvironmentVariable("XDG_CURRENT_DESKTOP") != QLatin1String("KDE")) {
     QApplication::setStyle("fusion");
+
+    QFile styleSheet(QStringLiteral(":/styles/deskflow.qss"));
+    if (styleSheet.open(QIODevice::ReadOnly | QIODevice::Text))
+      app.setStyleSheet(QString::fromUtf8(styleSheet.readAll()));
   }
 
   // Sets the fallback icon path and fallback theme

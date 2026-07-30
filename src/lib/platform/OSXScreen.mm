@@ -21,6 +21,7 @@
 #include "deskflow/ClientApp.h"
 #include "deskflow/Clipboard.h"
 #include "deskflow/DisplayInvalidException.h"
+#include "deskflow/FileClipboardData.h"
 #include "deskflow/KeyMap.h"
 #include "mt/CondVar.h"
 #include "mt/Lock.h"
@@ -851,12 +852,22 @@ void OSXScreen::screensaver(bool activate)
 
 void OSXScreen::resetOptions()
 {
-  // no options
+  m_pasteboard.setMaximumFileSize(deskflow::FileClipboardData::kMaxTotalBytes);
 }
 
-void OSXScreen::setOptions(const OptionsList &)
+void OSXScreen::setOptions(const OptionsList &options)
 {
-  // no options
+  if (options.size() % 2 != 0) {
+    LOG_ERR("options are the incorrect size, can not process them");
+    return;
+  }
+
+  for (size_t i = 0; i < options.size(); i += 2) {
+    if (options[i] == kOptionClipboardSharingSize) {
+      const uint64_t maxBytes = static_cast<uint64_t>(options[i + 1]) * 1024;
+      m_pasteboard.setMaximumFileSize(maxBytes);
+    }
+  }
 }
 
 void OSXScreen::setSequenceNumber(uint32_t seqNum)

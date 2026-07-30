@@ -47,6 +47,8 @@ add_library(${target} STATIC
   config/ScreenList.h
   config/ServerConfig.cpp
   config/ServerConfig.h
+  core/ClipboardHistory.cpp
+  core/ClipboardHistory.h
   core/CoreProcess.cpp
   core/CoreProcess.h
   core/NetworkMonitor.cpp
@@ -60,6 +62,8 @@ add_library(${target} STATIC
   dialogs/ClientConfigDialog.h
   dialogs/ClientConfigDialog.cpp
   dialogs/ClientConfigDialog.ui
+  dialogs/ClipboardHistoryDialog.cpp
+  dialogs/ClipboardHistoryDialog.h
   dialogs/FingerprintDialog.cpp
   dialogs/FingerprintDialog.h
   dialogs/HotkeyDialog.cpp

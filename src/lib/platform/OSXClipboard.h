@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "deskflow/FileClipboardData.h"
 #include "deskflow/IClipboard.h"
 
 #include <Carbon/Carbon.h>
@@ -35,9 +36,17 @@ public:
   std::string get(Format) const override;
 
   bool synchronize();
+  void setMaximumFileSize(uint64_t maxBytes);
 
 private:
   void clearConverters();
+
+  // Files format is handled directly (not via a converter) because file
+  // URLs live in one pasteboard item per file, which the converter
+  // dispatch (single item, single flavor) cannot express.
+  bool hasFiles() const;
+  std::string getFiles() const;
+  void addFiles(const std::string &data);
 
 private:
   using ConverterList = std::vector<IOSXClipboardConverter *>;
@@ -45,6 +54,7 @@ private:
   mutable Time m_time;
   ConverterList m_converters;
   PasteboardRef m_pboard;
+  uint64_t m_maximumFileSize = deskflow::FileClipboardData::kMaxTotalBytes;
 };
 
 //! Clipboard format converter interface
