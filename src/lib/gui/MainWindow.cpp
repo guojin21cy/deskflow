@@ -475,7 +475,8 @@ void MainWindow::openHelpUrl() const
 
 void MainWindow::openGetNewVersionUrl() const
 {
-  QDesktopServices::openUrl(QUrl(kUrlDownload));
+  const auto downloadUrl = m_versionChecker.downloadUrl();
+  QDesktopServices::openUrl(downloadUrl.isEmpty() ? QUrl(kUrlDownload) : downloadUrl);
 }
 
 void MainWindow::openSettings()
