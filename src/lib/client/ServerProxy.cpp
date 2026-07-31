@@ -44,6 +44,7 @@ ServerProxy::ServerProxy(Client *client, deskflow::IStream *stream, IEventQueue 
     handleData();
   });
   m_events->addHandler(EventTypes::ClipboardSending, this, [this](const auto &e) {
+    ProtocolUtil::writef(m_stream, kMsgCKeepAlive);
     ClipboardChunk::send(m_stream, e.getDataObject());
   });
 
@@ -82,6 +83,7 @@ void ServerProxy::handleData()
   // handle messages until there are no more.  first read message code.
   uint8_t code[4];
   uint32_t n = m_stream->read(code, 4);
+  bool receivedMessage = false;
   while (n != 0) {
     // verify we got an entire code
     if (n != 4) {
@@ -96,6 +98,7 @@ void ServerProxy::handleData()
       switch ((this->*m_parser)(code)) {
         using enum ConnectionResult;
       case Okay:
+        receivedMessage = true;
         break;
 
       case Unknown:
@@ -121,6 +124,9 @@ void ServerProxy::handleData()
   }
 
   flushCompressedMouse();
+  if (receivedMessage) {
+    resetKeepAliveAlarm();
+  }
 }
 
 ServerProxy::ConnectionResult ServerProxy::parseHandshakeMessage(const uint8_t *code)
@@ -155,9 +161,8 @@ ServerProxy::ConnectionResult ServerProxy::parseHandshakeMessage(const uint8_t *
   }
 
   else if (memcmp(code, kMsgCKeepAlive, 4) == 0) {
-    // echo keep alives and reset alarm
+    // echo keep alives
     ProtocolUtil::writef(m_stream, kMsgCKeepAlive);
-    resetKeepAliveAlarm();
   }
 
   else if (memcmp(code, kMsgCNoop, 4) == 0) {
@@ -260,9 +265,8 @@ ServerProxy::ConnectionResult ServerProxy::parseMessage(const uint8_t *code)
   }
 
   else if (memcmp(code, kMsgCKeepAlive, 4) == 0) {
-    // echo keep alives and reset alarm
+    // echo keep alives
     ProtocolUtil::writef(m_stream, kMsgCKeepAlive);
-    resetKeepAliveAlarm();
   }
 
   else if (memcmp(code, kMsgCNoop, 4) == 0) {

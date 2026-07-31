@@ -17,8 +17,11 @@ class ServerProxyTests : public QObject
 private Q_SLOTS:
   void initTestCase();
   void handleKeepAliveAlarm_timeout_queuesDisconnectRequest();
+  void handleData_noop_resetsKeepAliveAlarm();
   void handleData_incompleteMessage_queuesDisconnectRequest();
   void parseHandshakeMessage_protocolError_queuesRefusalRequest();
+  void clientClipboardSending_sendsKeepAliveBeforeChunk();
+  void serverClipboardSending_sendsKeepAliveBeforeChunk();
 
 private:
   Log m_log;
