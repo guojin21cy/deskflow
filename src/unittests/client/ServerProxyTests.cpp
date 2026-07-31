@@ -11,8 +11,10 @@
 #include "client/Client.h"
 #include "client/ServerProxy.h"
 #include "deskflow/AppUtil.h"
+#include "deskflow/ClipboardChunk.h"
 #include "deskflow/ProtocolTypes.h"
 #include "io/IStream.h"
+#include "server/ClientProxy1_6.h"
 
 #include <QTest>
 
@@ -83,8 +85,9 @@ public:
     return static_cast<uint32_t>(bytesToRead);
   }
 
-  void write(const void *, uint32_t) override
+  void write(const void *buffer, uint32_t size) override
   {
+    m_written.append(static_cast<const char *>(buffer), size);
   }
 
   void flush() override
@@ -119,8 +122,19 @@ public:
     return static_cast<uint32_t>(std::min<size_t>(total, UINT32_MAX));
   }
 
+  void clearWritten()
+  {
+    m_written.clear();
+  }
+
+  const std::string &written() const
+  {
+    return m_written;
+  }
+
 private:
   std::deque<std::string> m_chunks;
+  std::string m_written;
   bool m_inputShutdown = false;
 };
 
@@ -172,6 +186,7 @@ public:
 
   EventQueueTimer *newOneShotTimer(double, void *) override
   {
+    ++m_oneShotTimerCount;
     return timer();
   }
 
@@ -219,6 +234,11 @@ public:
     return m_addedEvents;
   }
 
+  size_t oneShotTimerCount() const
+  {
+    return m_oneShotTimerCount;
+  }
+
 private:
   struct HandlerKey
   {
@@ -235,6 +255,7 @@ private:
   };
 
   int m_timerStorage = 0;
+  size_t m_oneShotTimerCount = 0;
   std::map<HandlerKey, EventHandler> m_handlers;
   std::vector<Event> m_addedEvents;
 };
@@ -297,6 +318,18 @@ void ServerProxyTests::handleKeepAliveAlarm_timeout_queuesDisconnectRequest()
   QCOMPARE(QString::fromUtf8(request->message()), QStringLiteral("server is not responding"));
 }
 
+void ServerProxyTests::handleData_noop_resetsKeepAliveAlarm()
+{
+  RecordingEventQueue events;
+  FakeStream stream;
+  stream.push(std::string(kMsgCNoop, 4));
+  ServerProxy proxy(undereferenceableClient(), &stream, &events);
+
+  QCOMPARE(events.oneShotTimerCount(), static_cast<size_t>(1));
+  QVERIFY(events.dispatchEvent(Event(EventTypes::StreamInputReady, stream.getEventTarget())));
+  QCOMPARE(events.oneShotTimerCount(), static_cast<size_t>(2));
+}
+
 void ServerProxyTests::handleData_incompleteMessage_queuesDisconnectRequest()
 {
   RecordingEventQueue events;
@@ -330,6 +363,33 @@ void ServerProxyTests::parseHandshakeMessage_protocolError_queuesRefusalRequest(
   QVERIFY(request->kind() == Client::DisconnectRequest::Kind::Refuse);
   QVERIFY(request->refusalReason() == deskflow::core::ConnectionRefusal::ProtocolError);
   QCOMPARE(QString::fromUtf8(request->message()), QStringLiteral("server reported a protocol error"));
+}
+
+void ServerProxyTests::clientClipboardSending_sendsKeepAliveBeforeChunk()
+{
+  RecordingEventQueue events;
+  FakeStream stream;
+  ServerProxy proxy(undereferenceableClient(), &stream, &events);
+  Event event(EventTypes::ClipboardSending, &proxy, ClipboardChunk::data(0, 1, "data"));
+
+  QVERIFY(events.dispatchEvent(event));
+  QVERIFY(stream.written().starts_with(std::string(kMsgCKeepAlive, 4)));
+
+  Event::deleteData(event);
+}
+
+void ServerProxyTests::serverClipboardSending_sendsKeepAliveBeforeChunk()
+{
+  RecordingEventQueue events;
+  auto *stream = new FakeStream;
+  ClientProxy1_6 proxy("secondary", stream, reinterpret_cast<Server *>(0x1), &events);
+  stream->clearWritten();
+  Event event(EventTypes::ClipboardSending, &proxy, ClipboardChunk::data(0, 1, "data"));
+
+  QVERIFY(events.dispatchEvent(event));
+  QVERIFY(stream->written().starts_with(std::string(kMsgCKeepAlive, 4)));
+
+  Event::deleteData(event);
 }
 
 QTEST_MAIN(ServerProxyTests)
